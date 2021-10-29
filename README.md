@@ -4,8 +4,10 @@
 
 ## QuickStart
 
+详细示例 [fastfiber-demo](https://github.com/nerocho/fastfiber-demo)
+
 ```bash
-go get -u github.com/nerocho/fastfiber
+go get -u github.com/nerocho/fastfiber@latest
 ```
 
 ## Features
