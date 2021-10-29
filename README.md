@@ -84,3 +84,15 @@ Tracer:
   Enable: false
   HostPort: 127.0.0.1:6831 # jaeger server
 ```
+
+## 数据库操作
+
+```bash
+// 安装模型类生成工具
+go install github.com/xxjwxc/gormt@latest
+
+// 项目目录下执行，默认会把所有的dev库里面所有的表生成到models文件夹下
+gormt -H=127.0.0.1 -d=dev -p=123456 -u=root --port=3306 -F=true -o=models
+
+// 具体代码可以查看相关文件夹
+```

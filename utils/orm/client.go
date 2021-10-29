@@ -43,6 +43,7 @@ type DbOptions struct {
 	EnableReplicas bool
 	MaxIdle        int
 	MaxIdleTime    time.Duration
+	MaxLifeTime    time.Duration
 	MaxOpen        int
 	SlowThreshold  time.Duration
 }
@@ -80,6 +81,7 @@ func GetSqlDriver(options *DbOptions, logger zerolog.Logger, tracing bool) (*gor
 
 		err = gormDb.Use(dbresolver.Register(*resolverConf).
 			SetConnMaxIdleTime(time.Second * options.MaxIdleTime).
+			SetConnMaxLifetime(options.MaxLifeTime * time.Hour).
 			SetMaxIdleConns(options.MaxIdle).
 			SetMaxOpenConns(options.MaxOpen))
 		if err != nil {
@@ -102,6 +104,7 @@ func GetSqlDriver(options *DbOptions, logger zerolog.Logger, tracing bool) (*gor
 		return nil, err
 	} else {
 		rawDb.SetMaxIdleConns(options.MaxIdle)
+		rawDb.SetConnMaxLifetime(time.Hour * options.MaxLifeTime)
 		rawDb.SetConnMaxIdleTime(time.Second * options.MaxIdleTime)
 		rawDb.SetMaxOpenConns(options.MaxOpen)
 

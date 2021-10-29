@@ -40,6 +40,7 @@ func Bootstrap() {
 			Replicas:       Conf.GetStringSlice("Database.Dsn.Read"),
 			MaxIdle:        Conf.GetInt("Database.MaxIdleConns"),
 			MaxIdleTime:    Conf.GetDuration("Database.MaxIdleTime"),
+			MaxLifeTime:    Conf.GetDuration("Database.MaxLifeTime "),
 			MaxOpen:        Conf.GetInt("Database.MaxOpenConns"),
 			SlowThreshold:  Conf.GetDuration("Database.SlowThreshold"),
 		}
