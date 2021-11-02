@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/gofiber/fiber/v2 v2.20.2
+	github.com/golang-jwt/jwt/v4 v4.1.0
 	github.com/gookit/validate v1.2.11
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/rs/zerolog v1.25.0
