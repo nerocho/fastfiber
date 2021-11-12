@@ -29,7 +29,7 @@ type IdWorker struct {
 	mutex         sync.Mutex
 }
 
-func NewIdWorker(workerId, datacenterId int64, twepoch int64) (*IdWorker, error) {
+func NewIdWorker(workerId, datacenterId, twepoch int64) (*IdWorker, error) {
 	idWorker := &IdWorker{}
 	if workerId > maxWorkerId || workerId < 0 {
 		return nil, fmt.Errorf("worker Id 不能大于 %d 或 小于 0", maxWorkerId)
@@ -104,4 +104,24 @@ func (id *IdWorker) NextIds(num int) ([]int64, error) {
 		ids[i] = ((timestamp - id.twepoch) << timestampLeftShift) | (id.datacenterId << datacenterIdShift) | (id.workerId << workerIdShift) | id.sequence
 	}
 	return ids, nil
+}
+
+// 获取数据中心ID和机器ID
+func (id *IdWorker) GetDeviceID(sid int64) (workerId, datacenterId int64) {
+	datacenterId = (sid >> int64(datacenterIdShift)) & maxDatacenterId
+	workerId = (sid >> int64(workerIdShift)) & maxWorkerId
+	return
+}
+
+// 获取创建ID时的时间戳
+func (id *IdWorker) GetGenTimestamp(sid int64) (timestamp int64) {
+	timestamp = (sid >> int64(timestampLeftShift)) + id.twepoch
+	return
+}
+
+// 获取创建ID时的时间字符串(精度：秒)
+func (id *IdWorker) GetFormatedGenTime(sid int64) (t string) {
+	// 需将GetGenTimestamp获取的时间戳/1000转换成秒
+	t = time.Unix(id.GetGenTimestamp(sid)/1000, 0).Format("2006-01-02 15:04:05")
+	return
 }
