@@ -17,11 +17,11 @@ var (
 	configFile      = fmt.Sprintf("config.%s.yml", GetEnv("APP_ENV", "development"))
 )
 
-func initConfig() interf.ConfigInterface {
+func initConfig(configPath string) interf.ConfigInterface {
 	checkFile() // 检查配置文件是否存在
 
 	config := viper.New()
-	config.AddConfigPath(".")
+	config.AddConfigPath(configPath)
 	config.SetConfigName(configFile) //配置文件
 	config.SetConfigType("yml")      // 配置后缀
 

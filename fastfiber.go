@@ -1,6 +1,7 @@
 package fastfiber
 
 import (
+	"flag"
 	"log"
 
 	"github.com/go-redis/redis/v8"
@@ -21,12 +22,15 @@ var (
 	Db        *gorm.DB               //数据库
 	IdWorker  *snowflake.IdWorker    //id 生成器
 	RedisPool *redis.Client          //全局redisPool
+
+	configPath = flag.String("f", ".", "配置文件目录")
 )
 
 func Bootstrap() {
+	flag.Parse()
 
 	//绑定配置模块
-	Conf = initConfig()
+	Conf = initConfig(*configPath)
 
 	//绑定日志模块
 	Logger = initZerolog()
