@@ -15,7 +15,7 @@ go get -u github.com/nerocho/fastfiber@latest
 - 很棒的性能，参见[fasthttp](https://github.com/valyala/fasthttp)
 - 低内存占用
 - 集成 `viper` 的配置文件管理
-- 集成 `zerolog` 的高性能日志输出
+- 集成 `sls` 的高性能日志输出
 - 集成 `gorm` 的数据库操作
 - 集成 `go-redis` 的缓存操作
 - 自动的参数校验及全局错误处理
