@@ -3,9 +3,10 @@ package fastfiber
 import (
 	"flag"
 	"log"
+	"strings"
 
+	winner_logger "github.com/bfmTech/logger-go"
 	"github.com/go-redis/redis/v8"
-	"github.com/rs/zerolog"
 	"gorm.io/gorm"
 
 	"github.com/nerocho/fastfiber/interf"
@@ -17,7 +18,7 @@ import (
 
 var (
 	// globals
-	Logger    zerolog.Logger         //全局日志
+	Logger    winner_logger.Logger   //全局日志
 	Conf      interf.ConfigInterface //全局配置
 	Db        *gorm.DB               //数据库
 	IdWorker  *snowflake.IdWorker    //id 生成器
@@ -32,21 +33,39 @@ func Bootstrap() {
 	//绑定配置模块
 	Conf = initConfig(*configPath)
 
+	appName := Conf.GetString("System.AppName")
+
 	//绑定日志模块
-	Logger = initZerolog()
+	Logger = initSlSLogger(appName, Conf.GetString("System.LogType"))
 
 	//初始化数据库
 	if Conf.GetBool("Database.IsInit") {
+
 		ops := &orm.DbOptions{
 			SqlType:        Conf.GetString("Database.Type"),
-			Dsn:            Conf.GetString("Database.Dsn.Write"),
 			EnableReplicas: Conf.GetBool("Database.EnableReplicas"),
-			Replicas:       Conf.GetStringSlice("Database.Dsn.Read"),
 			MaxIdle:        Conf.GetInt("Database.MaxIdleConns"),
 			MaxIdleTime:    Conf.GetDuration("Database.MaxIdleTime"),
-			MaxLifeTime:    Conf.GetDuration("Database.MaxLifeTime "),
+			MaxLifeTime:    Conf.GetDuration("Database.MaxLifeTime"),
 			MaxOpen:        Conf.GetInt("Database.MaxOpenConns"),
 			SlowThreshold:  Conf.GetDuration("Database.SlowThreshold"),
+		}
+
+		// 配置写链接
+		suffix := "?charset=utf8mb4&parseTime=True&loc=Local" // 默认MYSQL
+		writeDsn := GetEnv(Conf.GetString("Database.Dsn.Write"))
+		if ops.SqlType == "postgres" {
+			suffix = " sslmode=disable TimeZone=Asia/Shanghai"
+		}
+		ops.Dsn = writeDsn + suffix
+
+		// 配置读库
+		if ops.EnableReplicas {
+			replicas := strings.Split(GetEnv(Conf.GetString("Database.Dsn.Read")), ",")
+			for i := range replicas {
+				replicas[i] = replicas[i] + suffix
+			}
+			ops.Replicas = replicas
 		}
 
 		if db, err := orm.GetSqlDriver(ops, Logger, Conf.GetBool("Tracer.Enable")); err != nil {
@@ -68,7 +87,15 @@ func Bootstrap() {
 
 	// RedisPool
 	if Conf.GetBool("Redis.IsInit") {
-		if redisPool, err := redispool.GetPool(Conf.GetString("Redis.Addr"), Conf.GetString("Redis.Password"), Conf.GetInt("Redis.MaxActive"), Conf.GetInt("Redis.MaxIdle"), Conf.GetInt("Redis.IdleTimeout"), Conf.GetInt("Redis.indexDb")); err != nil {
+
+		redisEnv := Conf.GetString("Redis.Addr")
+		addr := strings.Split(GetEnv(redisEnv), "@")
+
+		if len(addr) != 2 {
+			log.Fatal(ErrorsRedisInitConnFail + redisEnv + " 配置不正确")
+		}
+
+		if redisPool, err := redispool.GetPool(addr[1], addr[0], Conf.GetInt("Redis.MaxActive"), Conf.GetInt("Redis.MaxIdle"), Conf.GetInt("Redis.IdleTimeout"), Conf.GetInt("Redis.indexDb")); err != nil {
 			log.Fatal(ErrorsRedisInitConnFail + err.Error())
 		} else {
 			RedisPool = redisPool
@@ -76,7 +103,7 @@ func Bootstrap() {
 	}
 
 	if Conf.GetBool("Tracer.Enable") {
-		_, _, err := tracer.NewJaegerTracer(Conf.GetString("System.AppName"), Conf.GetString("Tracer.HostPort"))
+		_, _, err := tracer.NewJaegerTracer(appName, Conf.GetString("Tracer.HostPort"))
 		if err != nil {
 			log.Fatal(ErrorsTracerInitFail + err.Error())
 		}

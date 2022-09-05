@@ -3,37 +3,46 @@ package middleware
 import (
 	"time"
 
+	winner_logger "github.com/bfmTech/logger-go"
 	"github.com/gofiber/fiber/v2"
-
-	"github.com/nerocho/fastfiber"
 )
 
-type AcccessOptions struct {
+type AccessOptions struct {
+	Logger      winner_logger.Logger
 	LogResponse bool
 }
 
 //访问日志 中间件,官方的日志中间件不太灵活，先自己实现
-func Access(ops *AcccessOptions) fiber.Handler {
-	accessLogger := fastfiber.Logger.With().Str("type", "access").Logger()
+func Access(ops *AccessOptions) fiber.Handler {
 
 	return func(c *fiber.Ctx) (err error) {
 		start := time.Now()
 		err = c.Next()
-		latency := time.Since(start).Milliseconds()
+		end := time.Now()
 
-		ev := accessLogger.Info()
-		ev.Int("duration", int(latency))
-		ev.Str("method", string(c.Request().Header.Method()))
-		ev.Str("hostname", c.Hostname())
-		ev.Str("url", c.Path())
-		ev.Int("status", c.Response().StatusCode())
-		ev.Str("ip", c.IP())
-		ev.Str("queryString", c.Request().URI().QueryArgs().String())
-		ev.Str("postString", c.Request().PostArgs().String())
-		if ops.LogResponse {
-			ev.Bytes("response", c.Response().Body())
+		log := &winner_logger.AccessLog{
+			Method:    c.Method(),
+			Status:    int32(c.Response().StatusCode()),
+			BeginTime: start.Unix(),
+			EndTime:   end.Unix(),
+			Referer:   c.GetRespHeader("referer"),
+			HttpHost:  string(c.Request().Host()),
+			Interface: string(c.Request().URI().Path()),
+			ReqQuery:  string(c.Request().URI().QueryString()),
+			ReqBody:   c.Request().PostArgs().String(),
+			// ResBody:   string(c.Response().Body()),
+			ClientIp:  c.IP(),
+			UserAgent: c.GetRespHeader("user-agent"),
+			ReqId:     c.GetRespHeader("X-Request-ID"),
+			Headers:   c.GetRespHeader("token"),
 		}
-		ev.Msg("")
+
+		if ops.LogResponse {
+			log.ResBody = string(c.Response().Body())
+		}
+
+		ops.Logger.Access(log)
+
 		return err
 	}
 }

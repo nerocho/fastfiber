@@ -25,7 +25,7 @@ func GraceRun(app *fiber.App, timeout time.Duration) {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM) //os.Interrupt, os.Kill, syscall.SIGQUIT,
 	receive := <-quit
-	Logger.Info().Str("signal", receive.String()).Msg("ProcessKilled")
+	Logger.Info("signal=", receive.String(), " ProcessKilled")
 	TaskWithTimeout(app.Shutdown, time.Second*timeout)
 
 	fmt.Println("Running cleanup tasks...")

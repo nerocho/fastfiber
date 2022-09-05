@@ -34,8 +34,6 @@ System:
   AppName: 'go-express' # 应用名称
   Port: 3000 # 启动端口
   LogResponseBody: false # 是否打印response日志，默认关闭，开启比较影响性能和存储，比如返回给前端数据很大时，记录日志消耗会比较大
-  LogTimeFormat: 'Unix' #日志时间格式默认Unix time 如:1634610522，为空则为带时区的时间如2021-10-19T10:25:11+08:00，建议不要改默认配置，时间戳性能更好
-  LogBufferSize: 1000 # 日志缓冲池，写日志瞬时并发超过1000时，会丢弃部分日志，按需可以适当调高
 
 # 数据库配置
 Database:

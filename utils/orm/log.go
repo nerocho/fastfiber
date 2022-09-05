@@ -2,21 +2,22 @@ package orm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
-	"github.com/rs/zerolog"
+	winner_logger "github.com/bfmTech/logger-go"
 	gormLog "gorm.io/gorm/logger"
 	"gorm.io/gorm/utils"
 )
 
-var writer zerolog.Logger
+var writer winner_logger.Logger
 
 // 自定义日志格式, 对 gorm 自带日志进行拦截重写
-func createCustomGormLog(slowThreshold time.Duration, zerowriter zerolog.Logger, options ...Options) gormLog.Interface {
+func createCustomGormLog(slowThreshold time.Duration, winnerWriter winner_logger.Logger, options ...Options) gormLog.Interface {
 
-	writer = zerowriter
+	writer = winnerWriter
 
 	var (
 		infoStr      = "%s\n[info] "
@@ -27,9 +28,10 @@ func createCustomGormLog(slowThreshold time.Duration, zerowriter zerolog.Logger,
 		traceErrStr  = "%s %s\n[%.3fms] [rows:%v] %s"
 	)
 	logConf := gormLog.Config{
-		SlowThreshold: time.Millisecond * slowThreshold,
-		LogLevel:      gormLog.Warn,
-		Colorful:      false,
+		SlowThreshold:             time.Millisecond * slowThreshold,
+		LogLevel:                  gormLog.Warn,
+		IgnoreRecordNotFoundError: true,
+		Colorful:                  false,
 	}
 	log := &logger{
 		Writer:       logOutPut{},
@@ -53,11 +55,11 @@ type logOutPut struct{}
 func (l logOutPut) Printf(strFormat string, args ...interface{}) {
 	logRes := fmt.Sprintf(strFormat, args...)
 	if strings.HasPrefix(strFormat, "[info]") || strings.HasPrefix(strFormat, "[traceStr]") {
-		writer.Info().Str("type", "database").Str("detail", logRes).Msg("")
+		writer.Info("[database] ", logRes)
 	} else if strings.HasPrefix(strFormat, "[error]") || strings.HasPrefix(strFormat, "[traceErr]") {
-		writer.Error().Str("type", "database").Str("detail", logRes).Msg("")
+		writer.Error(errors.New("[database] " + logRes))
 	} else if strings.HasPrefix(strFormat, "[warn]") || strings.HasPrefix(strFormat, "[traceWarn]") {
-		writer.Warn().Str("type", "database").Str("detail", logRes).Msg("")
+		writer.Warn("database", logRes)
 	}
 }
 
@@ -123,9 +125,9 @@ type logger struct {
 
 // 日志模式
 func (l *logger) LogMode(level gormLog.LogLevel) gormLog.Interface {
-	newlogger := *l
-	newlogger.LogLevel = level
-	return &newlogger
+	nl := *l
+	nl.LogLevel = level
+	return &nl
 }
 
 // 一般信息

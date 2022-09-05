@@ -2,6 +2,7 @@ package fastfiber
 
 import (
 	"context"
+	"errors"
 	"os"
 	"time"
 
@@ -28,7 +29,13 @@ func GoSafe(fn func()) {
 func runSafe(fn func()) {
 	defer func() {
 		if err := recover(); err != nil {
-			Logger.Error().Interface("err", err).Msg("")
+			switch v := err.(type) {
+			case string:
+				Logger.Error(errors.New(v))
+			case error:
+				Logger.Error(v)
+			default:
+			}
 		}
 	}()
 

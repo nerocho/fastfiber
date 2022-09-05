@@ -1,11 +1,11 @@
 package orm
 
 import (
-	"errors"
 	"strings"
 	"time"
 
-	"github.com/rs/zerolog"
+	winner_logger "github.com/bfmTech/logger-go"
+	"github.com/pkg/errors"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -21,20 +21,6 @@ const (
 	ErrorsDialectorDbInitFail = "数据库驱动初始化失败:"
 	EventDestroyPrefix        = "Destroy_Database"
 )
-
-// 根据默认配置获取数据库实例，需要自行创建数据库实例，请使用GetSqlDriver
-// func GetDefaultDb(tracing bool) (*gorm.DB, error) {
-// 	ops := &DbOptions{
-// 		SqlType:        "Database.Type",
-// 		Dsn:            "Database.Dsn",
-// 		EnableReplicas: "Database.EnableReplicas",
-// 		MaxIdle:        "Database.MaxIdleConns",
-// 		MaxIdleTime:    "Database.MaxIdleTime",
-// 		MaxOpen:        "Database.MaxOpenConns",
-// 	}
-
-// 	return GetSqlDriver(ops, tracing)
-// }
 
 type DbOptions struct {
 	SqlType        string
@@ -57,10 +43,10 @@ type DbOptions struct {
 // 	MaxIdleTime:    "Database.MaxIdleTime",
 // 	MaxOpen:        "Database.MaxOpenConns",
 // }
-func GetSqlDriver(options *DbOptions, logger zerolog.Logger, tracing bool) (*gorm.DB, error) {
+func GetSqlDriver(options *DbOptions, logger winner_logger.Logger, tracing bool) (*gorm.DB, error) {
 	var dbDialector gorm.Dialector
 	if val, err := getDbDialector(options.SqlType, options.Dsn); err != nil {
-		logger.Error().Err(err).Msg(ErrorsDialectorDbInitFail + options.Dsn)
+		logger.Error(errors.WithMessage(err, ErrorsDialectorDbInitFail+options.Dsn))
 	} else {
 		dbDialector = val
 	}
@@ -131,12 +117,12 @@ func getDbDialector(sqlType, dsn string) (gorm.Dialector, error) {
 }
 
 // 获取读节点，遍历时会忽略连接不上的节点
-func getReplicas(sqlType string, replicas []string, logger zerolog.Logger) *dbresolver.Config {
+func getReplicas(sqlType string, replicas []string, logger winner_logger.Logger) *dbresolver.Config {
 	var dialectors []gorm.Dialector
 	for i := 0; i < len(replicas); i++ {
 		dsn := replicas[i]
 		if val, err := getDbDialector(sqlType, dsn); err != nil {
-			logger.Error().Err(err).Msg(ErrorsDialectorDbInitFail + dsn)
+			logger.Error(errors.WithMessage(err, ErrorsDialectorDbInitFail+dsn))
 		} else {
 			dialectors = append(dialectors, val)
 		}
@@ -149,8 +135,8 @@ func getReplicas(sqlType string, replicas []string, logger zerolog.Logger) *dbre
 }
 
 // 创建自定义日志模块，对 gorm 日志进行拦截、
-func redefineLog(slowThreshold time.Duration, zerowriter zerolog.Logger) gormLog.Interface {
-	return createCustomGormLog(slowThreshold, zerowriter,
+func redefineLog(slowThreshold time.Duration, winnerWriter winner_logger.Logger) gormLog.Interface {
+	return createCustomGormLog(slowThreshold, winnerWriter,
 		SetInfoStrFormat("[info] %s\n"),
 		SetWarnStrFormat("[warn] %s\n"),
 		SetErrStrFormat("[error] %s\n"),
