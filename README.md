@@ -96,3 +96,8 @@ gormt -H=127.0.0.1 -d=dev -p=123456 -u=root --port=3306 -F=true -o=models
 
 // 具体代码可以查看相关文件夹
 ```
+## Stargazers
+
+如果您觉得本项目对您有所帮助，请不要吝啬一个⭐哦！
+
+[![Stargazers over time](https://starchart.cc/nerocho/fastfiber.svg)](https://starchart.cc/nerocho/fastfiber)
