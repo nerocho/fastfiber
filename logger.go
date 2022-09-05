@@ -4,6 +4,7 @@ import (
 	"log"
 
 	winner_logger "github.com/bfmTech/logger-go"
+	"github.com/nerocho/fastfiber/utils/eventmanager"
 )
 
 // 阿里云sls 服务
@@ -25,9 +26,14 @@ func initSlSLogger(appName, logType string) winner_logger.Logger {
 	}
 
 	logger, err := winner_logger.NewLogger(appName, method)
-
 	if err != nil {
 		log.Fatal(ErrInitLoggerFail + err.Error())
 	}
+
+	// logger关闭事件，注册在全局事件统一管理器，由程序退出时统一销毁
+	eventmanager.CreateEventManageFactory().Set(EventDestroyPrefix, func(args ...interface{}) {
+		logger.Close()
+	})
+
 	return logger
 }
