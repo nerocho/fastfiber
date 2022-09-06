@@ -9,15 +9,15 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	gormLog "gorm.io/gorm/logger"
+	"gorm.io/gorm/logger"
 	"gorm.io/plugin/dbresolver"
-	gormopentracing "gorm.io/plugin/opentracing"
 
 	"github.com/nerocho/fastfiber/utils/eventmanager"
+	"github.com/nerocho/fastfiber/utils/orm/plugin"
 )
 
 const (
-	ErrorsDbDriverNotExists   = "Database.Type 数据库驱动不被支持,请选择mysql|postgre:"
+	ErrorsDbDriverNotExists   = "Database.Type 数据库驱动不被支持,请选择mysql|postgres:"
 	ErrorsDialectorDbInitFail = "数据库驱动初始化失败:"
 	EventDestroyPrefix        = "Destroy_Database"
 )
@@ -35,18 +35,13 @@ type DbOptions struct {
 }
 
 // 获取数据库驱动
-// ops := &DbOptions{
-// 	SqlType:        "Database.Type",
-// 	Dsn:            "Database.Dsn",
-// 	EnableReplicas: "Database.EnableReplicas",
-// 	MaxIdle:        "Database.MaxIdleConns",
-// 	MaxIdleTime:    "Database.MaxIdleTime",
-// 	MaxOpen:        "Database.MaxOpenConns",
-// }
-func GetSqlDriver(options *DbOptions, logger winner_logger.Logger, tracing bool) (*gorm.DB, error) {
+// ops := &DbOptions
+// wl winner_logger.Logger
+// tracing 是否开启sql日志
+func GetSqlDriver(options *DbOptions, wl winner_logger.Logger, tracing bool) (*gorm.DB, error) {
 	var dbDialector gorm.Dialector
 	if val, err := getDbDialector(options.SqlType, options.Dsn); err != nil {
-		logger.Error(errors.WithMessage(err, ErrorsDialectorDbInitFail+options.Dsn))
+		wl.Error(errors.WithMessage(err, ErrorsDialectorDbInitFail+options.Dsn))
 	} else {
 		dbDialector = val
 	}
@@ -54,7 +49,7 @@ func GetSqlDriver(options *DbOptions, logger winner_logger.Logger, tracing bool)
 	gormDb, err := gorm.Open(dbDialector, &gorm.Config{
 		SkipDefaultTransaction: true,
 		PrepareStmt:            true,
-		Logger:                 redefineLog(options.SlowThreshold, logger), //拦截、接管 gorm v2 自带日志
+		Logger:                 logger.Default.LogMode(logger.Silent), // 禁用日志
 	})
 	//gorm 数据库驱动初始化失败
 	if err != nil {
@@ -63,8 +58,7 @@ func GetSqlDriver(options *DbOptions, logger winner_logger.Logger, tracing bool)
 
 	// 读写分离配置
 	if options.EnableReplicas {
-		resolverConf := getReplicas(options.SqlType, options.Replicas, logger)
-
+		resolverConf := getReplicas(options.SqlType, options.Replicas, wl)
 		err = gormDb.Use(dbresolver.Register(*resolverConf).
 			SetConnMaxIdleTime(time.Second * options.MaxIdleTime).
 			SetConnMaxLifetime(options.MaxLifeTime * time.Hour).
@@ -80,9 +74,9 @@ func GetSqlDriver(options *DbOptions, logger winner_logger.Logger, tracing bool)
 		d.Statement.RaiseErrorOnNotFound = false
 	})
 
-	// tracing
+	// 是否开启SQL日志
 	if tracing {
-		gormDb.Use(gormopentracing.New())
+		gormDb.Use(plugin.New(wl))
 	}
 
 	// 为主连接设置连接池
@@ -117,12 +111,12 @@ func getDbDialector(sqlType, dsn string) (gorm.Dialector, error) {
 }
 
 // 获取读节点，遍历时会忽略连接不上的节点
-func getReplicas(sqlType string, replicas []string, logger winner_logger.Logger) *dbresolver.Config {
+func getReplicas(sqlType string, replicas []string, wl winner_logger.Logger) *dbresolver.Config {
 	var dialectors []gorm.Dialector
 	for i := 0; i < len(replicas); i++ {
 		dsn := replicas[i]
 		if val, err := getDbDialector(sqlType, dsn); err != nil {
-			logger.Error(errors.WithMessage(err, ErrorsDialectorDbInitFail+dsn))
+			wl.Error(errors.WithMessage(err, ErrorsDialectorDbInitFail+dsn))
 		} else {
 			dialectors = append(dialectors, val)
 		}
@@ -131,16 +125,4 @@ func getReplicas(sqlType string, replicas []string, logger winner_logger.Logger)
 		Replicas: dialectors,
 		Policy:   dbresolver.RandomPolicy{},
 	}
-
-}
-
-// 创建自定义日志模块，对 gorm 日志进行拦截、
-func redefineLog(slowThreshold time.Duration, winnerWriter winner_logger.Logger) gormLog.Interface {
-	return createCustomGormLog(slowThreshold, winnerWriter,
-		SetInfoStrFormat("[info] %s\n"),
-		SetWarnStrFormat("[warn] %s\n"),
-		SetErrStrFormat("[error] %s\n"),
-		SetTraceStrFormat("[traceStr] %s [%.3fms] [rows:%v] %s\n"),
-		SetTraceWarnStrFormat("[traceWarn] %s %s [%.3fms] [rows:%v] %s\n"),
-		SetTraceErrStrFormat("[traceErr] %s %s [%.3fms] [rows:%v] %s\n"))
 }

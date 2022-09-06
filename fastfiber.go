@@ -13,7 +13,6 @@ import (
 	"github.com/nerocho/fastfiber/utils/orm"
 	"github.com/nerocho/fastfiber/utils/redispool"
 	"github.com/nerocho/fastfiber/utils/snowflake"
-	"github.com/nerocho/fastfiber/utils/tracer"
 )
 
 var (
@@ -68,7 +67,7 @@ func Bootstrap() {
 			ops.Replicas = replicas
 		}
 
-		if db, err := orm.GetSqlDriver(ops, Logger, Conf.GetBool("Tracer.Enable")); err != nil {
+		if db, err := orm.GetSqlDriver(ops, Logger, Conf.GetBool("Database.EnableSQLLog")); err != nil {
 			log.Fatal(ErrorsDbInitFail + err.Error())
 			return
 		} else {
@@ -99,13 +98,6 @@ func Bootstrap() {
 			log.Fatal(ErrorsRedisInitConnFail + err.Error())
 		} else {
 			RedisPool = redisPool
-		}
-	}
-
-	if Conf.GetBool("Tracer.Enable") {
-		_, _, err := tracer.NewJaegerTracer(appName, Conf.GetString("Tracer.HostPort"))
-		if err != nil {
-			log.Fatal(ErrorsTracerInitFail + err.Error())
 		}
 	}
 
