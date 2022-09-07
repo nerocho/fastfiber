@@ -94,7 +94,7 @@ func Bootstrap() {
 			log.Fatal(ErrorsRedisInitConnFail + redisEnv + " 配置不正确")
 		}
 
-		if redisPool, err := redispool.GetPool(addr[1], addr[0], Conf.GetInt("Redis.MaxActive"), Conf.GetInt("Redis.MaxIdle"), Conf.GetInt("Redis.IdleTimeout"), Conf.GetInt("Redis.indexDb")); err != nil {
+		if redisPool, err := redispool.GetPool(addr[1], addr[0], Conf.GetInt("Redis.MaxActive"), Conf.GetInt("Redis.MaxIdle"), Conf.GetInt("Redis.IdleTimeout"), Conf.GetInt("Redis.indexDb"), Logger, Conf.GetBool("Redis.EnableTraceLog")); err != nil {
 			log.Fatal(ErrorsRedisInitConnFail + err.Error())
 		} else {
 			RedisPool = redisPool

@@ -13,7 +13,6 @@ import (
 	"gorm.io/plugin/dbresolver"
 
 	"github.com/nerocho/fastfiber/utils/eventmanager"
-	"github.com/nerocho/fastfiber/utils/orm/plugin"
 )
 
 const (
@@ -76,7 +75,7 @@ func GetSqlDriver(options *DbOptions, wl winner_logger.Logger, tracing bool) (*g
 
 	// 是否开启SQL日志
 	if tracing {
-		gormDb.Use(plugin.New(wl))
+		gormDb.Use(NewMysqlTracingPlugin(wl))
 	}
 
 	// 为主连接设置连接池

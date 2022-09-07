@@ -1,4 +1,4 @@
-package plugin
+package orm
 
 import (
 	"strconv"
@@ -11,7 +11,7 @@ import (
 )
 
 // 自定义sql日志插件
-// 日志格式: tag(固定的标签), reqId(request_id), sql(sql文本), costSeconds(执行时间(s)), affectedRows(受影响行数), stack(sql执行位置)
+// 日志格式: tag(固定的标签), reqId(request_id), sql(sql文本), costSeconds(执行时间(ms)), affectedRows(受影响行数), stack(sql执行位置)
 
 const (
 	callBackBeforeName = "winnerTracing:before"
@@ -28,7 +28,7 @@ var _logger winner_logger.Logger
 // check
 var _ gorm.Plugin = &WinnerTracingPlugin{}
 
-func New(logger winner_logger.Logger) gorm.Plugin {
+func NewMysqlTracingPlugin(logger winner_logger.Logger) gorm.Plugin {
 	_logger = logger
 	return &WinnerTracingPlugin{}
 }
@@ -76,10 +76,10 @@ func after(db *gorm.DB) {
 		return
 	}
 
-	costSeconds := strconv.FormatFloat(time.Since(startTime).Seconds(), 'f', 6, 64)
+	cost := strconv.FormatInt(time.Since(startTime).Milliseconds(), 10)
 	sql := db.Dialector.Explain(db.Statement.SQL.String(), db.Statement.Vars...)
 	affectedRows := strconv.FormatInt(db.Statement.RowsAffected, 10)
 	stack := utils.FileWithLineNum()
 
-	_logger.Info(tag, "request_id:"+reqId, "sql:"+sql, "cost:"+costSeconds, "affectedRows:"+affectedRows, "stack:"+stack)
+	_logger.Info(tag, "request_id:"+reqId, "sql:"+sql, "cost:"+cost, "affectedRows:"+affectedRows, "stack:"+stack)
 }
