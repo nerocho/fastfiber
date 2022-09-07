@@ -44,7 +44,6 @@ go get -u github.com/nerocho/fastfiber@latest
 
 ```yaml
 # 系统配置
-# 系统配置
 System:
   AppName: "go-express" # 应用名称
   Port: 8080 # 启动端口
@@ -76,6 +75,7 @@ Database:
 # redis 配置
 Redis:
   IsInit: true # 是否初始化到fastfiber对象上
+  EnableTraceLog: true #是否开启日志
   Addr: ENV_OF_REDIS_DSN #格式必须为:"password@host:port"
   MaxIdle: 10 #最大空闲连接数
   MaxActive: 1000 # 连接池大小
