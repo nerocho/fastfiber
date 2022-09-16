@@ -76,9 +76,9 @@ Database:
 Redis:
   IsInit: true # 是否初始化到fastfiber对象上
   EnableTraceLog: true #是否开启日志
-  #格式必须为: redis://root:123456@1127.0.0.1:6379/0，
-  #无密码无账号如：redis://:@1127.0.0.1:6379/0
-  #有密码无账号如：redis://:password@1127.0.0.1:6379/0
+  #格式必须为: redis://root:123456@1127.0.0.1:6379，
+  #无密码无账号如：redis://:@1127.0.0.1:6379
+  #有密码无账号如：redis://:password@1127.0.0.1:6379
   Addr: ENV_OF_REDIS_DSN 
   MaxIdle: 10 #最大空闲连接数
   MaxActive: 1000 # 连接池大小
