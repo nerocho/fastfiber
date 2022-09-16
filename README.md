@@ -66,6 +66,7 @@ Database:
   MaxOpenConns: 128 # 连接池大小
   EnableReplicas: false # 是否开启读写分离
 
+  #密码中如果包含特殊字符，需要提前url encode
   #Mysql格式为:"mysql://root:123456@127.0.0.1:3306/dbName"
   #Postgres格式为: postgres://root:123456@1127.0.0.1:5432/Winner
   Dsn:
@@ -76,6 +77,7 @@ Database:
 Redis:
   IsInit: true # 是否初始化到fastfiber对象上
   EnableTraceLog: true #是否开启日志
+  #密码中如果包含特殊字符，需要提前url encode
   #格式必须为: redis://root:123456@1127.0.0.1:6379，
   #无密码无账号如：redis://:@1127.0.0.1:6379
   #有密码无账号如：redis://:password@1127.0.0.1:6379
