@@ -19,7 +19,7 @@ go get -u github.com/nerocho/fastfiber@latest
 - 集成 `gorm` 的数据库操作
 - 集成 `go-redis` 的缓存操作
 - 自动的参数校验及全局错误处理
-- 集成 `Sql Tracing` 
+- 集成 `Sql Tracing` 和 `Redis Tracing`
 - `Graceful Shutdown`
 - 开箱即用的中间件&工具包
   - 访问日志,限流,跨域,JWT,接口级缓存...
@@ -66,8 +66,8 @@ Database:
   MaxOpenConns: 128 # 连接池大小
   EnableReplicas: false # 是否开启读写分离
 
-  #MYSQL格式必须为:"root:123456@tcp(127.0.0.1:3306)/dbName"
-  #postgre格式必须为:"host=127.0.0.1 port=5432 dbname=dev user=root password=123456"
+  #Mysql格式为:"mysql://root:123456@127.0.0.1:3306/dbName"
+  #Postgres格式为: postgres://root:123456@1127.0.0.1:5432/Winner
   Dsn:
     Write: ENV_OF_MYSQL_DSN_WRITE
     Read: ENV_OF_MYSQL_DSN_READ # 多个从库的话用,号隔开
@@ -76,7 +76,10 @@ Database:
 Redis:
   IsInit: true # 是否初始化到fastfiber对象上
   EnableTraceLog: true #是否开启日志
-  Addr: ENV_OF_REDIS_DSN #格式必须为:"password@host:port"
+  #格式必须为: redis://root:123456@1127.0.0.1:6379/0，
+  #无密码无账号如：redis://:@1127.0.0.1:6379/0
+  #有密码无账号如：redis://:password@1127.0.0.1:6379/0
+  Addr: ENV_OF_REDIS_DSN 
   MaxIdle: 10 #最大空闲连接数
   MaxActive: 1000 # 连接池大小
   IdleTimeout: 60 #空闲超时时间

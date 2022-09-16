@@ -9,6 +9,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
 
+	"github.com/kos-v/dsnparser"
 	"github.com/nerocho/fastfiber/interf"
 	"github.com/nerocho/fastfiber/utils/orm"
 	"github.com/nerocho/fastfiber/utils/redispool"
@@ -51,18 +52,13 @@ func Bootstrap() {
 		}
 
 		// 配置写链接
-		suffix := "?charset=utf8mb4&parseTime=True&loc=Local" // 默认MYSQL
-		writeDsn := GetEnv(Conf.GetString("Database.Dsn.Write"))
-		if ops.SqlType == "postgres" {
-			suffix = " sslmode=disable TimeZone=Asia/Shanghai"
-		}
-		ops.Dsn = writeDsn + suffix
+		ops.Dsn = orm.ParseDsn(ops.SqlType, GetEnv(Conf.GetString("Database.Dsn.Write")))
 
 		// 配置读库
 		if ops.EnableReplicas {
 			replicas := strings.Split(GetEnv(Conf.GetString("Database.Dsn.Read")), ",")
 			for i := range replicas {
-				replicas[i] = replicas[i] + suffix
+				replicas[i] = orm.ParseDsn(ops.SqlType, replicas[i])
 			}
 			ops.Replicas = replicas
 		}
@@ -87,14 +83,10 @@ func Bootstrap() {
 	// RedisPool
 	if Conf.GetBool("Redis.IsInit") {
 
-		redisEnv := Conf.GetString("Redis.Addr")
-		addr := strings.Split(GetEnv(redisEnv), "@")
+		before := dsnparser.Parse(GetEnv(Conf.GetString("Redis.Addr")))
+		addr := before.GetHost() + ":" + before.GetPort()
 
-		if len(addr) != 2 {
-			log.Fatal(ErrorsRedisInitConnFail + redisEnv + " 配置不正确")
-		}
-
-		if redisPool, err := redispool.GetPool(addr[1], addr[0], Conf.GetInt("Redis.MaxActive"), Conf.GetInt("Redis.MaxIdle"), Conf.GetInt("Redis.IdleTimeout"), Conf.GetInt("Redis.indexDb"), Logger, Conf.GetBool("Redis.EnableTraceLog")); err != nil {
+		if redisPool, err := redispool.GetPool(addr, before.GetPassword(), Conf.GetInt("Redis.MaxActive"), Conf.GetInt("Redis.MaxIdle"), Conf.GetInt("Redis.IdleTimeout"), Conf.GetInt("Redis.indexDb"), Logger, Conf.GetBool("Redis.EnableTraceLog")); err != nil {
 			log.Fatal(ErrorsRedisInitConnFail + err.Error())
 		} else {
 			RedisPool = redisPool
