@@ -3,6 +3,7 @@ package fastfiber
 import (
 	"flag"
 	"log"
+	"net/url"
 	"strings"
 
 	winner_logger "github.com/bfmTech/logger-go"
@@ -82,11 +83,13 @@ func Bootstrap() {
 
 	// RedisPool
 	if Conf.GetBool("Redis.IsInit") {
-
-		before := dsnparser.Parse(GetEnv(Conf.GetString("Redis.Addr")))
+		s := GetEnv(Conf.GetString("Redis.Addr"))
+		before := dsnparser.Parse(s)
 		addr := before.GetHost() + ":" + before.GetPort()
 
-		if redisPool, err := redispool.GetPool(addr, before.GetPassword(), Conf.GetInt("Redis.MaxActive"), Conf.GetInt("Redis.MaxIdle"), Conf.GetInt("Redis.IdleTimeout"), Conf.GetInt("Redis.indexDb"), Logger, Conf.GetBool("Redis.EnableTraceLog")); err != nil {
+		pwd, _ := url.QueryUnescape(before.GetPassword())
+
+		if redisPool, err := redispool.GetPool(addr, pwd, Conf.GetInt("Redis.MaxActive"), Conf.GetInt("Redis.MaxIdle"), Conf.GetInt("Redis.IdleTimeout"), Conf.GetInt("Redis.indexDb"), Logger, Conf.GetBool("Redis.EnableTraceLog")); err != nil {
 			log.Fatal(ErrorsRedisInitConnFail + err.Error())
 		} else {
 			RedisPool = redisPool

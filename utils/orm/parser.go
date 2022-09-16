@@ -2,6 +2,7 @@ package orm
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/kos-v/dsnparser"
 )
@@ -15,10 +16,11 @@ const (
 
 func ParseDsn(sqlType, originDsn string) string {
 	before := dsnparser.Parse(originDsn)
+	pwd, _ := url.QueryUnescape(before.GetPassword())
 
 	if sqlType == "postgres" {
-		return fmt.Sprintf(postgres_tpl, before.GetHost(), before.GetPort(), before.GetPath(), before.GetUser(), before.GetPassword())
+		return fmt.Sprintf(postgres_tpl, before.GetHost(), before.GetPort(), before.GetPath(), before.GetUser(), pwd)
 	} else {
-		return fmt.Sprintf(mysql_tpl, before.GetUser(), before.GetPassword(), before.GetHost(), before.GetPort(), before.GetPath())
+		return fmt.Sprintf(mysql_tpl, before.GetUser(), pwd, before.GetHost(), before.GetPort(), before.GetPath())
 	}
 }
