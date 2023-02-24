@@ -31,7 +31,7 @@ func BindAndOneErr(ctx *fiber.Ctx, ptr interface{}) error {
 	v := validate.New(ptr)
 
 	if !v.Validate() {
-		return v.Errors
+		return v.Errors.OneError()
 	}
 
 	return nil
