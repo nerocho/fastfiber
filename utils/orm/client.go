@@ -83,7 +83,7 @@ func GetSqlDriver(options *DbOptions, wl winner_logger.Logger, tracing bool) (*g
 		return nil, err
 	} else {
 		rawDb.SetMaxIdleConns(options.MaxIdle)
-		rawDb.SetConnMaxLifetime(time.Hour * options.MaxLifeTime)
+		rawDb.SetConnMaxLifetime(time.Second * options.MaxLifeTime)
 		rawDb.SetConnMaxIdleTime(time.Second * options.MaxIdleTime)
 		rawDb.SetMaxOpenConns(options.MaxOpen)
 
