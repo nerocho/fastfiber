@@ -60,7 +60,7 @@ func GetSqlDriver(options *DbOptions, wl winner_logger.Logger, tracing bool) (*g
 		resolverConf := getReplicas(options.SqlType, options.Replicas, wl)
 		err = gormDb.Use(dbresolver.Register(*resolverConf).
 			SetConnMaxIdleTime(time.Second * options.MaxIdleTime).
-			SetConnMaxLifetime(options.MaxLifeTime * time.Hour).
+			SetConnMaxLifetime(time.Second * options.MaxLifeTime).
 			SetMaxIdleConns(options.MaxIdle).
 			SetMaxOpenConns(options.MaxOpen))
 		if err != nil {
