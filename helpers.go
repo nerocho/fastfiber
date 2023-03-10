@@ -1,7 +1,6 @@
 package fastfiber
 
 import (
-	"context"
 	"errors"
 	"os"
 	"time"
@@ -43,21 +42,18 @@ func runSafe(fn func()) {
 }
 
 // 带时限的异步执行 返回true为超时、false为未超时
-func TaskWithTimeout(task func() error, duration time.Duration) bool {
-	ctx, cancel := context.WithTimeout(context.Background(), duration)
-	defer cancel()
-
+func TaskWithTimeout(task func() error, d time.Duration) bool {
 	done := make(chan struct{}, 1)
 
 	GoSafe(func() {
-		task()
+		_ = task()
 		done <- struct{}{}
 	})
 
 	select {
 	case <-done:
 		return false
-	case <-ctx.Done():
+	case <-time.After(d):
 		return true
 	}
 }

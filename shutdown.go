@@ -13,7 +13,7 @@ import (
 	"github.com/nerocho/fastfiber/utils/eventmanager"
 )
 
-//Grace shutdown with timeout
+// Grace shutdown with timeout
 func GraceRun(app *fiber.App, timeout time.Duration) {
 	go func() {
 		addr := fmt.Sprintf(":%d", Conf.GetInt("System.Port"))
@@ -26,7 +26,7 @@ func GraceRun(app *fiber.App, timeout time.Duration) {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM) //os.Interrupt, os.Kill, syscall.SIGQUIT,
 	receive := <-quit
 	Logger.Info("signal=", receive.String(), " ProcessKilled")
-	TaskWithTimeout(app.Shutdown, time.Second*timeout)
+	TaskWithTimeout(app.Shutdown, timeout)
 
 	fmt.Println("Running cleanup tasks...")
 	eventmanager.CreateEventManageFactory().FuzzyCall(EventDestroyPrefix)
