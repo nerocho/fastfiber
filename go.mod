@@ -3,21 +3,19 @@ module github.com/nerocho/fastfiber
 go 1.17
 
 require (
-	github.com/bfmTech/logger-go v0.0.7
+	github.com/bfmTech/logger-go v0.0.10
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gofiber/fiber/v2 v2.37.0
 	github.com/golang-jwt/jwt/v4 v4.1.0
 	github.com/gookit/validate v1.4.4
-	github.com/opentracing/opentracing-go v1.2.0
+	github.com/kos-v/dsnparser v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/viper v1.12.0
-	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gorm.io/driver/mysql v1.3.6
 	gorm.io/driver/postgres v1.3.9
 	gorm.io/gorm v1.23.8
 	gorm.io/plugin/dbresolver v1.2.3
-	gorm.io/plugin/opentracing v0.0.0-20211220013347-7d2b2af23560
 )
 
 require (
@@ -46,13 +44,9 @@ require (
 	github.com/jackc/pgx/v4 v4.17.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
-	github.com/kos-v/dsnparser v1.1.0 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
@@ -62,7 +56,6 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
-	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.39.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
